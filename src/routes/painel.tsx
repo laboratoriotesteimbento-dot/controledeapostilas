@@ -616,6 +616,21 @@ function Painel() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="a-min">Estoque mínimo para alerta</Label>
+              <Input
+                id="a-min"
+                type="number"
+                min={0}
+                value={form.estoque_minimo}
+                onChange={(ev) => setForm({ ...form, estoque_minimo: ev.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Quando o estoque chegar nesse valor ou abaixo, a apostila fica marcada em
+                vermelho.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="a-desc">Descrição</Label>
               <Textarea
                 id="a-desc"
