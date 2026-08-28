@@ -194,7 +194,10 @@ function Painel() {
 
     if (editando) {
       const { error } = await supabase.from("apostilas").update(payload).eq("id", editando.id);
-      if (error) return toast.error(error.message);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
       const renomeou = editando.nome !== payload.nome;
       await registrarLog({
         acao: renomeou ? "renomear" : "editar",
@@ -213,7 +216,10 @@ function Painel() {
         .insert({ ...payload, criado_por: userData.user?.id ?? null })
         .select()
         .single();
-      if (error) return toast.error(error.message);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
       await registrarLog({
         acao: "criar",
         entidade: "apostila",
@@ -261,7 +267,10 @@ function Painel() {
   async function salvarEntrega(e: React.FormEvent) {
     e.preventDefault();
     const apostila = apostilas.data?.find((a) => a.id === formEntrega.apostila_id);
-    if (!apostila) return toast.error("Selecione uma apostila.");
+    if (!apostila) {
+      toast.error("Selecione uma apostila.");
+      return;
+    }
     const qtd = Number(formEntrega.quantidade) || 1;
 
     const { data: userData } = await supabase.auth.getUser();
@@ -279,7 +288,10 @@ function Painel() {
       })
       .select()
       .single();
-    if (error) return toast.error(error.message);
+    if (error) {
+        toast.error(error.message);
+        return;
+      }
 
     await supabase
       .from("apostilas")
