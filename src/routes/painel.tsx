@@ -414,11 +414,15 @@ function Painel() {
                       <TableHead>Código</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead className="text-right">Estoque</TableHead>
+                      <TableHead className="text-right">Mínimo</TableHead>
+                      <TableHead>Situação</TableHead>
                       <TableHead className="w-28 text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(apostilas.data ?? []).map((a) => (
+                    {(apostilas.data ?? []).map((a) => {
+                      const nivel = nivelEstoque(a);
+                      return (
                       <TableRow key={a.id}>
                         <TableCell className="font-medium">{a.nome}</TableCell>
                         <TableCell className="text-muted-foreground">{a.codigo ?? "—"}</TableCell>
@@ -426,9 +430,20 @@ function Painel() {
                           {a.descricao ?? "—"}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Badge variant={a.quantidade > 0 ? "secondary" : "outline"}>
+                          <Badge variant="outline" className={estiloNivel[nivel].classe}>
                             {a.quantidade}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {a.estoque_minimo ?? 0}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${estiloNivel[nivel].classe}`}
+                          >
+                            <span className="size-1.5 rounded-full bg-current" />
+                            {estiloNivel[nivel].rotulo}
+                          </span>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="icon" onClick={() => abrirEdicao(a)}>
@@ -443,10 +458,12 @@ function Painel() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                     {apostilas.data?.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                        <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+
                           Nenhuma apostila cadastrada ainda.
                         </TableCell>
                       </TableRow>
