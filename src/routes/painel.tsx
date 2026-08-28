@@ -75,6 +75,11 @@ export const Route = createFileRoute("/painel")({
   component: Painel,
 });
 
+type Categoria = {
+  id: string;
+  nome: string;
+};
+
 type Apostila = {
   id: string;
   nome: string;
@@ -82,6 +87,7 @@ type Apostila = {
   descricao: string | null;
   quantidade: number;
   estoque_minimo: number;
+  categoria_id: string | null;
   created_at: string;
 };
 
