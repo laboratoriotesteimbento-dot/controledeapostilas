@@ -70,10 +70,8 @@ function Index() {
           <Button asChild size="lg">
             <Link to="/painel">Entrar no painel</Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/auth">Criar conta</Link>
-          </Button>
         </div>
+
 
         <div className="mt-20 grid gap-5 sm:grid-cols-3">
           {recursos.map((r) => (

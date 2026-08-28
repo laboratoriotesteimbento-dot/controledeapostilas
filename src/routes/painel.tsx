@@ -1,17 +1,18 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   BookOpen,
   ClipboardList,
   History,
-  LogOut,
   PackageCheck,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatarData, registrarLog } from "@/lib/registro";
@@ -56,7 +57,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export const Route = createFileRoute("/_authenticated/painel")({
+export const Route = createFileRoute("/painel")({
   head: () => ({
     meta: [
       { title: "Painel — Controle de Apostilas" },
@@ -80,8 +81,31 @@ type Apostila = {
   codigo: string | null;
   descricao: string | null;
   quantidade: number;
+  estoque_minimo: number;
   created_at: string;
 };
+
+type NivelEstoque = "ok" | "atencao" | "critico";
+
+function nivelEstoque(a: Apostila): NivelEstoque {
+  const min = a.estoque_minimo ?? 0;
+  if (a.quantidade <= min) return "critico";
+  if (a.quantidade <= min * 1.5 || a.quantidade <= min + 3) return "atencao";
+  return "ok";
+}
+
+const estiloNivel: Record<NivelEstoque, { classe: string; rotulo: string }> = {
+  ok: { classe: "bg-stock-ok/15 text-stock-ok border-stock-ok/30", rotulo: "Estoque bom" },
+  atencao: {
+    classe: "bg-stock-warn/15 text-stock-warn border-stock-warn/30",
+    rotulo: "Atenção",
+  },
+  critico: {
+    classe: "bg-stock-low/15 text-stock-low border-stock-low/30",
+    rotulo: "Estoque baixo",
+  },
+};
+
 
 type Entrega = {
   id: string;
@@ -113,7 +137,7 @@ const rotuloAcao: Record<string, string> = {
 };
 
 function Painel() {
-  const navigate = useNavigate();
+  
   const qc = useQueryClient();
 
   const apostilas = useQuery({
@@ -162,12 +186,18 @@ function Painel() {
   // ---------- apostila form ----------
   const [dialogApostila, setDialogApostila] = useState(false);
   const [editando, setEditando] = useState<Apostila | null>(null);
-  const [form, setForm] = useState({ nome: "", codigo: "", descricao: "", quantidade: "0" });
+  const [form, setForm] = useState({
+    nome: "",
+    codigo: "",
+    descricao: "",
+    quantidade: "0",
+    estoque_minimo: "5",
+  });
   const [excluirApostila, setExcluirApostila] = useState<Apostila | null>(null);
 
   function abrirNova() {
     setEditando(null);
-    setForm({ nome: "", codigo: "", descricao: "", quantidade: "0" });
+    setForm({ nome: "", codigo: "", descricao: "", quantidade: "0", estoque_minimo: "5" });
     setDialogApostila(true);
   }
 
@@ -178,6 +208,7 @@ function Painel() {
       codigo: a.codigo ?? "",
       descricao: a.descricao ?? "",
       quantidade: String(a.quantidade),
+      estoque_minimo: String(a.estoque_minimo ?? 0),
     });
     setDialogApostila(true);
   }
@@ -189,6 +220,7 @@ function Painel() {
       codigo: form.codigo.trim() || null,
       descricao: form.descricao.trim() || null,
       quantidade: Number(form.quantidade) || 0,
+      estoque_minimo: Number(form.estoque_minimo) || 0,
     };
     if (!payload.nome) return;
 
@@ -210,10 +242,9 @@ function Painel() {
       });
       toast.success("Apostila atualizada.");
     } else {
-      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("apostilas")
-        .insert({ ...payload, criado_por: userData.user?.id ?? null })
+        .insert(payload)
         .select()
         .single();
       if (error) {
@@ -273,7 +304,6 @@ function Painel() {
     }
     const qtd = Number(formEntrega.quantidade) || 1;
 
-    const { data: userData } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from("entregas")
       .insert({
@@ -284,7 +314,6 @@ function Painel() {
         quantidade: qtd,
         data_entrega: new Date(formEntrega.data_entrega).toISOString(),
         observacao: formEntrega.observacao.trim() || null,
-        registrado_por: userData.user?.id ?? null,
       })
       .select()
       .single();
@@ -338,12 +367,8 @@ function Painel() {
     recarregar();
   }
 
-  async function sair() {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth" });
-  }
-
   const totalEstoque = (apostilas.data ?? []).reduce((s, a) => s + a.quantidade, 0);
+  const emAlerta = (apostilas.data ?? []).filter((a) => nivelEstoque(a) !== "ok").length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -351,21 +376,19 @@ function Painel() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2 font-display text-lg font-bold">
             <ClipboardList className="size-5 text-primary" />
-            Controle de Apostilas
+            Instituto Mix — Controle de Apostilas
           </div>
-          <Button variant="ghost" size="sm" onClick={sair}>
-            <LogOut className="mr-2 size-4" />
-            Sair
-          </Button>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-4">
           <Resumo icone={BookOpen} rotulo="Apostilas cadastradas" valor={apostilas.data?.length ?? 0} />
           <Resumo icone={ClipboardList} rotulo="Exemplares em estoque" valor={totalEstoque} />
           <Resumo icone={PackageCheck} rotulo="Entregas registradas" valor={entregas.data?.length ?? 0} />
+          <Resumo icone={AlertTriangle} rotulo="Apostilas em alerta" valor={emAlerta} destaque={emAlerta > 0} />
         </div>
+
 
         <Tabs defaultValue="apostilas" className="mt-8">
           <TabsList>
@@ -391,11 +414,15 @@ function Painel() {
                       <TableHead>Código</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead className="text-right">Estoque</TableHead>
+                      <TableHead className="text-right">Mínimo</TableHead>
+                      <TableHead>Situação</TableHead>
                       <TableHead className="w-28 text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(apostilas.data ?? []).map((a) => (
+                    {(apostilas.data ?? []).map((a) => {
+                      const nivel = nivelEstoque(a);
+                      return (
                       <TableRow key={a.id}>
                         <TableCell className="font-medium">{a.nome}</TableCell>
                         <TableCell className="text-muted-foreground">{a.codigo ?? "—"}</TableCell>
@@ -403,9 +430,20 @@ function Painel() {
                           {a.descricao ?? "—"}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Badge variant={a.quantidade > 0 ? "secondary" : "outline"}>
+                          <Badge variant="outline" className={estiloNivel[nivel].classe}>
                             {a.quantidade}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {a.estoque_minimo ?? 0}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${estiloNivel[nivel].classe}`}
+                          >
+                            <span className="size-1.5 rounded-full bg-current" />
+                            {estiloNivel[nivel].rotulo}
+                          </span>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="icon" onClick={() => abrirEdicao(a)}>
@@ -420,10 +458,12 @@ function Painel() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                     {apostilas.data?.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                        <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+
                           Nenhuma apostila cadastrada ainda.
                         </TableCell>
                       </TableRow>
@@ -576,6 +616,21 @@ function Painel() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="a-min">Estoque mínimo para alerta</Label>
+              <Input
+                id="a-min"
+                type="number"
+                min={0}
+                value={form.estoque_minimo}
+                onChange={(ev) => setForm({ ...form, estoque_minimo: ev.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Quando o estoque chegar nesse valor ou abaixo, a apostila fica marcada em
+                vermelho.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="a-desc">Descrição</Label>
               <Textarea
                 id="a-desc"
@@ -725,16 +780,18 @@ function Resumo({
   icone: Icone,
   rotulo,
   valor,
+  destaque = false,
 }: {
   icone: React.ElementType;
   rotulo: string;
   valor: number;
+  destaque?: boolean;
 }) {
   return (
     <Card className="shadow-card">
       <CardContent className="flex items-center gap-4 py-6">
-        <div className="rounded-md bg-secondary p-3">
-          <Icone className="size-5 text-primary" />
+        <div className={destaque ? "rounded-md bg-stock-low/15 p-3" : "rounded-md bg-secondary p-3"}>
+          <Icone className={destaque ? "size-5 text-stock-low" : "size-5 text-primary"} />
         </div>
         <div>
           <p className="text-sm text-muted-foreground">{rotulo}</p>
@@ -744,3 +801,4 @@ function Resumo({
     </Card>
   );
 }
+
