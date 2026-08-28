@@ -748,16 +748,18 @@ function Resumo({
   icone: Icone,
   rotulo,
   valor,
+  destaque = false,
 }: {
   icone: React.ElementType;
   rotulo: string;
   valor: number;
+  destaque?: boolean;
 }) {
   return (
     <Card className="shadow-card">
       <CardContent className="flex items-center gap-4 py-6">
-        <div className="rounded-md bg-secondary p-3">
-          <Icone className="size-5 text-primary" />
+        <div className={destaque ? "rounded-md bg-stock-low/15 p-3" : "rounded-md bg-secondary p-3"}>
+          <Icone className={destaque ? "size-5 text-stock-low" : "size-5 text-primary"} />
         </div>
         <div>
           <p className="text-sm text-muted-foreground">{rotulo}</p>
@@ -767,3 +769,4 @@ function Resumo({
     </Card>
   );
 }
+
