@@ -297,7 +297,6 @@ function Painel() {
     }
     const qtd = Number(formEntrega.quantidade) || 1;
 
-    const { data: userData } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from("entregas")
       .insert({
@@ -308,7 +307,6 @@ function Painel() {
         quantidade: qtd,
         data_entrega: new Date(formEntrega.data_entrega).toISOString(),
         observacao: formEntrega.observacao.trim() || null,
-        registrado_por: userData.user?.id ?? null,
       })
       .select()
       .single();
