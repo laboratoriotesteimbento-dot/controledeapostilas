@@ -137,7 +137,7 @@ const rotuloAcao: Record<string, string> = {
 };
 
 function Painel() {
-  const navigate = useNavigate();
+  const qc0 = null;
   const qc = useQueryClient();
 
   const apostilas = useQuery({
