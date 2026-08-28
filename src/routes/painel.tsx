@@ -81,8 +81,31 @@ type Apostila = {
   codigo: string | null;
   descricao: string | null;
   quantidade: number;
+  estoque_minimo: number;
   created_at: string;
 };
+
+type NivelEstoque = "ok" | "atencao" | "critico";
+
+function nivelEstoque(a: Apostila): NivelEstoque {
+  const min = a.estoque_minimo ?? 0;
+  if (a.quantidade <= min) return "critico";
+  if (a.quantidade <= min * 1.5 || a.quantidade <= min + 3) return "atencao";
+  return "ok";
+}
+
+const estiloNivel: Record<NivelEstoque, { classe: string; rotulo: string }> = {
+  ok: { classe: "bg-stock-ok/15 text-stock-ok border-stock-ok/30", rotulo: "Estoque bom" },
+  atencao: {
+    classe: "bg-stock-warn/15 text-stock-warn border-stock-warn/30",
+    rotulo: "Atenção",
+  },
+  critico: {
+    classe: "bg-stock-low/15 text-stock-low border-stock-low/30",
+    rotulo: "Estoque baixo",
+  },
+};
+
 
 type Entrega = {
   id: string;
