@@ -1,17 +1,18 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   BookOpen,
   ClipboardList,
   History,
-  LogOut,
   PackageCheck,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { formatarData, registrarLog } from "@/lib/registro";
@@ -56,7 +57,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export const Route = createFileRoute("/_authenticated/painel")({
+export const Route = createFileRoute("/painel")({
   head: () => ({
     meta: [
       { title: "Painel — Controle de Apostilas" },
