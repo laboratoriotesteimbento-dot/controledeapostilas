@@ -234,10 +234,9 @@ function Painel() {
       });
       toast.success("Apostila atualizada.");
     } else {
-      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("apostilas")
-        .insert({ ...payload, criado_por: userData.user?.id ?? null })
+        .insert(payload)
         .select()
         .single();
       if (error) {
