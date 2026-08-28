@@ -14,7 +14,140 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      apostilas: {
+        Row: {
+          codigo: string | null
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          quantidade: number
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string | null
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          quantidade?: number
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string | null
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          quantidade?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      entregas: {
+        Row: {
+          apostila_id: string | null
+          apostila_nome: string
+          created_at: string
+          data_entrega: string
+          entregue_para: string
+          entregue_por: string
+          id: string
+          observacao: string | null
+          quantidade: number
+          registrado_por: string | null
+        }
+        Insert: {
+          apostila_id?: string | null
+          apostila_nome: string
+          created_at?: string
+          data_entrega?: string
+          entregue_para: string
+          entregue_por: string
+          id?: string
+          observacao?: string | null
+          quantidade?: number
+          registrado_por?: string | null
+        }
+        Update: {
+          apostila_id?: string | null
+          apostila_nome?: string
+          created_at?: string
+          data_entrega?: string
+          entregue_para?: string
+          entregue_por?: string
+          id?: string
+          observacao?: string | null
+          quantidade?: number
+          registrado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entregas_apostila_id_fkey"
+            columns: ["apostila_id"]
+            isOneToOne: false
+            referencedRelation: "apostilas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      logs: {
+        Row: {
+          acao: string
+          autor_id: string | null
+          autor_nome: string | null
+          created_at: string
+          descricao: string
+          detalhes: Json | null
+          entidade: string
+          entidade_id: string | null
+          id: string
+        }
+        Insert: {
+          acao: string
+          autor_id?: string | null
+          autor_nome?: string | null
+          created_at?: string
+          descricao: string
+          detalhes?: Json | null
+          entidade: string
+          entidade_id?: string | null
+          id?: string
+        }
+        Update: {
+          acao?: string
+          autor_id?: string | null
+          autor_nome?: string | null
+          created_at?: string
+          descricao?: string
+          detalhes?: Json | null
+          entidade?: string
+          entidade_id?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
