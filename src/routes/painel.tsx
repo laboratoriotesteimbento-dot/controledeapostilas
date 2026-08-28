@@ -362,12 +362,8 @@ function Painel() {
     recarregar();
   }
 
-  async function sair() {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth" });
-  }
-
   const totalEstoque = (apostilas.data ?? []).reduce((s, a) => s + a.quantidade, 0);
+  const emAlerta = (apostilas.data ?? []).filter((a) => nivelEstoque(a) !== "ok").length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -375,21 +371,19 @@ function Painel() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2 font-display text-lg font-bold">
             <ClipboardList className="size-5 text-primary" />
-            Controle de Apostilas
+            Instituto Mix — Controle de Apostilas
           </div>
-          <Button variant="ghost" size="sm" onClick={sair}>
-            <LogOut className="mr-2 size-4" />
-            Sair
-          </Button>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-4">
           <Resumo icone={BookOpen} rotulo="Apostilas cadastradas" valor={apostilas.data?.length ?? 0} />
           <Resumo icone={ClipboardList} rotulo="Exemplares em estoque" valor={totalEstoque} />
           <Resumo icone={PackageCheck} rotulo="Entregas registradas" valor={entregas.data?.length ?? 0} />
+          <Resumo icone={AlertTriangle} rotulo="Apostilas em alerta" valor={emAlerta} destaque={emAlerta > 0} />
         </div>
+
 
         <Tabs defaultValue="apostilas" className="mt-8">
           <TabsList>
