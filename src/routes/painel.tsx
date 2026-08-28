@@ -75,6 +75,11 @@ export const Route = createFileRoute("/painel")({
   component: Painel,
 });
 
+type Categoria = {
+  id: string;
+  nome: string;
+};
+
 type Apostila = {
   id: string;
   nome: string;
@@ -82,6 +87,7 @@ type Apostila = {
   descricao: string | null;
   quantidade: number;
   estoque_minimo: number;
+  categoria_id: string | null;
   created_at: string;
 };
 
@@ -152,6 +158,18 @@ function Painel() {
     },
   });
 
+  const categorias = useQuery({
+    queryKey: ["categorias"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categorias")
+        .select("id, nome")
+        .order("nome", { ascending: true });
+      if (error) throw error;
+      return data as Categoria[];
+    },
+  });
+
   const entregas = useQuery({
     queryKey: ["entregas"],
     queryFn: async () => {
@@ -181,6 +199,40 @@ function Painel() {
     qc.invalidateQueries({ queryKey: ["apostilas"] });
     qc.invalidateQueries({ queryKey: ["entregas"] });
     qc.invalidateQueries({ queryKey: ["logs"] });
+    qc.invalidateQueries({ queryKey: ["categorias"] });
+  }
+
+  const nomeCategoria = (id: string | null) =>
+    categorias.data?.find((c) => c.id === id)?.nome ?? null;
+
+  // ---------- categorias ----------
+  const [dialogCategorias, setDialogCategorias] = useState(false);
+  const [novaCategoria, setNovaCategoria] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("todas");
+
+  async function criarCategoria(e: React.FormEvent) {
+    e.preventDefault();
+    const nome = novaCategoria.trim();
+    if (!nome) return;
+    const { error } = await supabase.from("categorias").insert({ nome });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setNovaCategoria("");
+    toast.success("Categoria adicionada.");
+    recarregar();
+  }
+
+  async function removerCategoria(c: Categoria) {
+    const { error } = await supabase.from("categorias").delete().eq("id", c.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (filtroCategoria === c.id) setFiltroCategoria("todas");
+    toast.success("Categoria excluída.");
+    recarregar();
   }
 
   // ---------- apostila form ----------
@@ -192,12 +244,20 @@ function Painel() {
     descricao: "",
     quantidade: "0",
     estoque_minimo: "5",
+    categoria_id: "sem",
   });
   const [excluirApostila, setExcluirApostila] = useState<Apostila | null>(null);
 
   function abrirNova() {
     setEditando(null);
-    setForm({ nome: "", codigo: "", descricao: "", quantidade: "0", estoque_minimo: "5" });
+    setForm({
+      nome: "",
+      codigo: "",
+      descricao: "",
+      quantidade: "0",
+      estoque_minimo: "5",
+      categoria_id: filtroCategoria !== "todas" ? filtroCategoria : "sem",
+    });
     setDialogApostila(true);
   }
 
@@ -209,6 +269,7 @@ function Painel() {
       descricao: a.descricao ?? "",
       quantidade: String(a.quantidade),
       estoque_minimo: String(a.estoque_minimo ?? 0),
+      categoria_id: a.categoria_id ?? "sem",
     });
     setDialogApostila(true);
   }
@@ -221,8 +282,10 @@ function Painel() {
       descricao: form.descricao.trim() || null,
       quantidade: Number(form.quantidade) || 0,
       estoque_minimo: Number(form.estoque_minimo) || 0,
+      categoria_id: form.categoria_id === "sem" ? null : form.categoria_id,
     };
     if (!payload.nome) return;
+
 
     if (editando) {
       const { error } = await supabase.from("apostilas").update(payload).eq("id", editando.id);
