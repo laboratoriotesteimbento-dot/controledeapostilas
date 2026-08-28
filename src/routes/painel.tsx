@@ -186,12 +186,18 @@ function Painel() {
   // ---------- apostila form ----------
   const [dialogApostila, setDialogApostila] = useState(false);
   const [editando, setEditando] = useState<Apostila | null>(null);
-  const [form, setForm] = useState({ nome: "", codigo: "", descricao: "", quantidade: "0" });
+  const [form, setForm] = useState({
+    nome: "",
+    codigo: "",
+    descricao: "",
+    quantidade: "0",
+    estoque_minimo: "5",
+  });
   const [excluirApostila, setExcluirApostila] = useState<Apostila | null>(null);
 
   function abrirNova() {
     setEditando(null);
-    setForm({ nome: "", codigo: "", descricao: "", quantidade: "0" });
+    setForm({ nome: "", codigo: "", descricao: "", quantidade: "0", estoque_minimo: "5" });
     setDialogApostila(true);
   }
 
@@ -202,6 +208,7 @@ function Painel() {
       codigo: a.codigo ?? "",
       descricao: a.descricao ?? "",
       quantidade: String(a.quantidade),
+      estoque_minimo: String(a.estoque_minimo ?? 0),
     });
     setDialogApostila(true);
   }
@@ -213,6 +220,7 @@ function Painel() {
       codigo: form.codigo.trim() || null,
       descricao: form.descricao.trim() || null,
       quantidade: Number(form.quantidade) || 0,
+      estoque_minimo: Number(form.estoque_minimo) || 0,
     };
     if (!payload.nome) return;
 
