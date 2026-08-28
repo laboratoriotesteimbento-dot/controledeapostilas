@@ -158,6 +158,18 @@ function Painel() {
     },
   });
 
+  const categorias = useQuery({
+    queryKey: ["categorias"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categorias")
+        .select("id, nome")
+        .order("nome", { ascending: true });
+      if (error) throw error;
+      return data as Categoria[];
+    },
+  });
+
   const entregas = useQuery({
     queryKey: ["entregas"],
     queryFn: async () => {
