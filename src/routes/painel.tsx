@@ -469,7 +469,28 @@ function Painel() {
 
           {/* APOSTILAS */}
           <TabsContent value="apostilas" className="pt-6">
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm text-muted-foreground">Categoria</Label>
+                <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+                  <SelectTrigger className="w-56">
+                    <SelectValue placeholder="Todas as categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas as categorias</SelectItem>
+                    <SelectItem value="sem">Sem categoria</SelectItem>
+                    {(categorias.data ?? []).map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={() => setDialogCategorias(true)}>
+                  <Tags className="mr-2 size-4" />
+                  Categorias
+                </Button>
+              </div>
               <Button onClick={abrirNova}>
                 <Plus className="mr-2 size-4" />
                 Nova apostila
@@ -481,6 +502,7 @@ function Painel() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nome</TableHead>
+                      <TableHead>Categoria</TableHead>
                       <TableHead>Código</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead className="text-right">Estoque</TableHead>
@@ -490,11 +512,18 @@ function Painel() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(apostilas.data ?? []).map((a) => {
+                    {apostilasFiltradas.map((a) => {
                       const nivel = nivelEstoque(a);
                       return (
                       <TableRow key={a.id}>
                         <TableCell className="font-medium">{a.nome}</TableCell>
+                        <TableCell>
+                          {nomeCategoria(a.categoria_id) ? (
+                            <Badge variant="secondary">{nomeCategoria(a.categoria_id)}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">{a.codigo ?? "—"}</TableCell>
                         <TableCell className="max-w-xs truncate text-muted-foreground">
                           {a.descricao ?? "—"}
