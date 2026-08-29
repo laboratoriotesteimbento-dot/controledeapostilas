@@ -432,6 +432,13 @@ function Painel() {
 
   const totalEstoque = (apostilas.data ?? []).reduce((s, a) => s + a.quantidade, 0);
   const emAlerta = (apostilas.data ?? []).filter((a) => nivelEstoque(a) !== "ok").length;
+  const apostilasFiltradas = (apostilas.data ?? []).filter((a) =>
+    filtroCategoria === "todas"
+      ? true
+      : filtroCategoria === "sem"
+        ? !a.categoria_id
+        : a.categoria_id === filtroCategoria,
+  );
 
   return (
     <div className="min-h-screen bg-background">
