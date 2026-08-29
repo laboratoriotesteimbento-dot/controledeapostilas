@@ -899,6 +899,47 @@ function Painel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog categorias */}
+      <Dialog open={dialogCategorias} onOpenChange={setDialogCategorias}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display">Categorias</DialogTitle>
+            <DialogDescription>
+              Adicione ou remova categorias usadas para separar as apostilas.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={criarCategoria} className="flex gap-2">
+            <Input
+              value={novaCategoria}
+              placeholder="Ex.: Informática"
+              onChange={(ev) => setNovaCategoria(ev.target.value)}
+            />
+            <Button type="submit">
+              <Plus className="mr-2 size-4" />
+              Adicionar
+            </Button>
+          </form>
+          <div className="max-h-72 space-y-2 overflow-y-auto">
+            {(categorias.data ?? []).map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center justify-between rounded-md border border-border px-3 py-2"
+              >
+                <span className="text-sm font-medium">{c.nome}</span>
+                <Button variant="ghost" size="icon" onClick={() => removerCategoria(c)}>
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
+            {categorias.data?.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Nenhuma categoria cadastrada.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
