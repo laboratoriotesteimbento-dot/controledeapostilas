@@ -694,6 +694,34 @@ function Painel() {
                 onChange={(ev) => setForm({ ...form, nome: ev.target.value })}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <div className="flex gap-2">
+                <Select
+                  value={form.categoria_id}
+                  onValueChange={(v) => setForm({ ...form, categoria_id: v })}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Sem categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sem">Sem categoria</SelectItem>
+                    {(categorias.data ?? []).map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogCategorias(true)}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="a-cod">Código</Label>
