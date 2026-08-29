@@ -10,6 +10,7 @@ import {
   PackageCheck,
   Pencil,
   Plus,
+  Tags,
   Trash2,
 } from "lucide-react";
 
@@ -432,6 +433,13 @@ function Painel() {
 
   const totalEstoque = (apostilas.data ?? []).reduce((s, a) => s + a.quantidade, 0);
   const emAlerta = (apostilas.data ?? []).filter((a) => nivelEstoque(a) !== "ok").length;
+  const apostilasFiltradas = (apostilas.data ?? []).filter((a) =>
+    filtroCategoria === "todas"
+      ? true
+      : filtroCategoria === "sem"
+        ? !a.categoria_id
+        : a.categoria_id === filtroCategoria,
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -462,7 +470,28 @@ function Painel() {
 
           {/* APOSTILAS */}
           <TabsContent value="apostilas" className="pt-6">
-            <div className="mb-4 flex justify-end">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm text-muted-foreground">Categoria</Label>
+                <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+                  <SelectTrigger className="w-56">
+                    <SelectValue placeholder="Todas as categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas as categorias</SelectItem>
+                    <SelectItem value="sem">Sem categoria</SelectItem>
+                    {(categorias.data ?? []).map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={() => setDialogCategorias(true)}>
+                  <Tags className="mr-2 size-4" />
+                  Categorias
+                </Button>
+              </div>
               <Button onClick={abrirNova}>
                 <Plus className="mr-2 size-4" />
                 Nova apostila
@@ -474,6 +503,7 @@ function Painel() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nome</TableHead>
+                      <TableHead>Categoria</TableHead>
                       <TableHead>Código</TableHead>
                       <TableHead>Descrição</TableHead>
                       <TableHead className="text-right">Estoque</TableHead>
@@ -483,11 +513,18 @@ function Painel() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(apostilas.data ?? []).map((a) => {
+                    {apostilasFiltradas.map((a) => {
                       const nivel = nivelEstoque(a);
                       return (
                       <TableRow key={a.id}>
                         <TableCell className="font-medium">{a.nome}</TableCell>
+                        <TableCell>
+                          {nomeCategoria(a.categoria_id) ? (
+                            <Badge variant="secondary">{nomeCategoria(a.categoria_id)}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">{a.codigo ?? "—"}</TableCell>
                         <TableCell className="max-w-xs truncate text-muted-foreground">
                           {a.descricao ?? "—"}
@@ -523,11 +560,10 @@ function Painel() {
                       </TableRow>
                       );
                     })}
-                    {apostilas.data?.length === 0 && (
+                    {apostilasFiltradas.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
-
-                          Nenhuma apostila cadastrada ainda.
+                        <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                          Nenhuma apostila nesta categoria.
                         </TableCell>
                       </TableRow>
                     )}
@@ -657,6 +693,34 @@ function Painel() {
                 value={form.nome}
                 onChange={(ev) => setForm({ ...form, nome: ev.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <div className="flex gap-2">
+                <Select
+                  value={form.categoria_id}
+                  onValueChange={(v) => setForm({ ...form, categoria_id: v })}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Sem categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sem">Sem categoria</SelectItem>
+                    {(categorias.data ?? []).map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogCategorias(true)}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -835,6 +899,47 @@ function Painel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog categorias */}
+      <Dialog open={dialogCategorias} onOpenChange={setDialogCategorias}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display">Categorias</DialogTitle>
+            <DialogDescription>
+              Adicione ou remova categorias usadas para separar as apostilas.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={criarCategoria} className="flex gap-2">
+            <Input
+              value={novaCategoria}
+              placeholder="Ex.: Informática"
+              onChange={(ev) => setNovaCategoria(ev.target.value)}
+            />
+            <Button type="submit">
+              <Plus className="mr-2 size-4" />
+              Adicionar
+            </Button>
+          </form>
+          <div className="max-h-72 space-y-2 overflow-y-auto">
+            {(categorias.data ?? []).map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center justify-between rounded-md border border-border px-3 py-2"
+              >
+                <span className="text-sm font-medium">{c.nome}</span>
+                <Button variant="ghost" size="icon" onClick={() => removerCategoria(c)}>
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
+            {categorias.data?.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Nenhuma categoria cadastrada.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
