@@ -10,6 +10,7 @@ import {
   PackageCheck,
   Pencil,
   Plus,
+  Tags,
   Trash2,
 } from "lucide-react";
 
