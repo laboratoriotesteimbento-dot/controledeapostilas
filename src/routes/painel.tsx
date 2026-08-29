@@ -559,11 +559,10 @@ function Painel() {
                       </TableRow>
                       );
                     })}
-                    {apostilas.data?.length === 0 && (
+                    {apostilasFiltradas.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
-
-                          Nenhuma apostila cadastrada ainda.
+                        <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                          Nenhuma apostila nesta categoria.
                         </TableCell>
                       </TableRow>
                     )}
