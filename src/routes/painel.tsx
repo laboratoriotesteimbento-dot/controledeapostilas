@@ -490,10 +490,11 @@ function Painel() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-5">
           <Resumo icone={BookOpen} rotulo="Apostilas cadastradas" valor={apostilas.data?.length ?? 0} />
           <Resumo icone={ClipboardList} rotulo="Exemplares em estoque" valor={totalEstoque} />
           <Resumo icone={PackageCheck} rotulo="Entregas registradas" valor={entregas.data?.length ?? 0} />
+          <Resumo icone={BarChart3} rotulo="Exemplares entregues" valor={totalEntregue} />
           <Resumo icone={AlertTriangle} rotulo="Apostilas em alerta" valor={emAlerta} destaque={emAlerta > 0} />
         </div>
 
