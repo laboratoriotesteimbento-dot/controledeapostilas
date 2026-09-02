@@ -434,6 +434,7 @@ function Painel() {
 
   const totalEstoque = (apostilas.data ?? []).reduce((s, a) => s + a.quantidade, 0);
   const emAlerta = (apostilas.data ?? []).filter((a) => nivelEstoque(a) !== "ok").length;
+  const totalEntregue = (entregas.data ?? []).reduce((s, e) => s + e.quantidade, 0);
   const apostilasFiltradas = (apostilas.data ?? []).filter((a) =>
     filtroCategoria === "todas"
       ? true
@@ -441,6 +442,41 @@ function Painel() {
         ? !a.categoria_id
         : a.categoria_id === filtroCategoria,
   );
+
+  const rankingReposicao = React.useMemo(() => {
+    const map = new Map<string, number>();
+    for (const e of entregas.data ?? []) {
+      if (!e.apostila_id) continue;
+      map.set(e.apostila_id, (map.get(e.apostila_id) ?? 0) + e.quantidade);
+    }
+    const items = (apostilas.data ?? [])
+      .filter((a) => map.has(a.id))
+      .map((a) => ({
+        id: a.id,
+        nome: a.nome,
+        categoria_id: a.categoria_id,
+        totalSaida: map.get(a.id) ?? 0,
+        estoque: a.quantidade,
+        minimo: a.estoque_minimo,
+      }))
+      .sort((a, b) => b.totalSaida - a.totalSaida);
+    return items;
+  }, [entregas.data, apostilas.data]);
+
+  function sugestaoReposicao(item: {
+    estoque: number;
+    minimo: number;
+    totalSaida: number;
+  }) {
+    if (item.estoque <= item.minimo) {
+      const sugerido = Math.max(item.minimo * 2 - item.estoque, item.totalSaida);
+      return { texto: `Repor ~${sugerido} un.`, classe: "text-stock-low" };
+    }
+    if (item.estoque <= item.minimo * 1.5) {
+      return { texto: "Atenção", classe: "text-stock-warn" };
+    }
+    return { texto: "Estoque ok", classe: "text-stock-ok" };
+  }
 
   return (
     <div className="min-h-screen bg-background">
