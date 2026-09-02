@@ -443,7 +443,7 @@ function Painel() {
         : a.categoria_id === filtroCategoria,
   );
 
-  const rankingReposicao = React.useMemo(() => {
+  const rankingReposicao = useMemo(() => {
     const map = new Map<string, number>();
     for (const e of entregas.data ?? []) {
       if (!e.apostila_id) continue;
