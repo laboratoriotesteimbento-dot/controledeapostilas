@@ -707,6 +707,66 @@ function Painel() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* REPOSICAO */}
+          <TabsContent value="reposicao" className="pt-6">
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-display text-lg">
+                  <BarChart3 className="size-4 text-accent" />
+                  Ranking de saídas para reposição
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-14 text-center">#</TableHead>
+                      <TableHead>Apostila</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead className="text-right">Total saída</TableHead>
+                      <TableHead className="text-right">Estoque</TableHead>
+                      <TableHead className="text-right">Mínimo</TableHead>
+                      <TableHead>Situação / Sugestão</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rankingReposicao.map((item, index) => {
+                      const sugestao = sugestaoReposicao(item);
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-center font-display text-lg font-bold text-muted-foreground">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="font-medium">{item.nome}</TableCell>
+                          <TableCell>
+                            {nomeCategoria(item.categoria_id) ? (
+                              <Badge variant="secondary">{nomeCategoria(item.categoria_id)}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">{item.totalSaida}</TableCell>
+                          <TableCell className="text-right">{item.estoque}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">{item.minimo}</TableCell>
+                          <TableCell>
+                            <span className={`text-sm font-medium ${sugestao.classe}`}>{sugestao.texto}</span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {rankingReposicao.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                          Nenhuma entrega registrada ainda. O ranking aparecerá assim que houver saídas.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
