@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  BarChart3,
   BookOpen,
   ClipboardList,
   History,
@@ -433,6 +434,7 @@ function Painel() {
 
   const totalEstoque = (apostilas.data ?? []).reduce((s, a) => s + a.quantidade, 0);
   const emAlerta = (apostilas.data ?? []).filter((a) => nivelEstoque(a) !== "ok").length;
+  const totalEntregue = (entregas.data ?? []).reduce((s, e) => s + e.quantidade, 0);
   const apostilasFiltradas = (apostilas.data ?? []).filter((a) =>
     filtroCategoria === "todas"
       ? true
@@ -440,6 +442,90 @@ function Painel() {
         ? !a.categoria_id
         : a.categoria_id === filtroCategoria,
   );
+
+  const rankingReposicao = useMemo(() => {
+    const porId = new Map<string, number>();
+    const porNome = new Map<string, number>();
+    for (const e of entregas.data ?? []) {
+      if (e.apostila_id) {
+        porId.set(e.apostila_id, (porId.get(e.apostila_id) ?? 0) + e.quantidade);
+      } else {
+        porNome.set(e.apostila_nome, (porNome.get(e.apostila_nome) ?? 0) + e.quantidade);
+      }
+    }
+
+    const items: {
+      id: string;
+      nome: string;
+      categoria_id: string | null;
+      totalSaida: number;
+      estoque: number | null;
+      minimo: number;
+      excluida: boolean;
+    }[] = [];
+
+    for (const a of apostilas.data ?? []) {
+      const total = porId.get(a.id) ?? 0;
+      if (total > 0) {
+        items.push({
+          id: a.id,
+          nome: a.nome,
+          categoria_id: a.categoria_id,
+          totalSaida: total,
+          estoque: a.quantidade,
+          minimo: a.estoque_minimo,
+          excluida: false,
+        });
+        porId.delete(a.id);
+      }
+    }
+
+    for (const [id, total] of porId.entries()) {
+      const entrega = entregas.data?.find((e) => e.apostila_id === id);
+      items.push({
+        id,
+        nome: entrega?.apostila_nome ?? "Apostila removida",
+        categoria_id: null,
+        totalSaida: total,
+        estoque: null,
+        minimo: 0,
+        excluida: true,
+      });
+    }
+
+    for (const [nome, total] of porNome.entries()) {
+      items.push({
+        id: nome,
+        nome,
+        categoria_id: null,
+        totalSaida: total,
+        estoque: null,
+        minimo: 0,
+        excluida: true,
+      });
+    }
+
+    return items.sort((a, b) => b.totalSaida - a.totalSaida);
+  }, [entregas.data, apostilas.data]);
+
+  function sugestaoReposicao(item: {
+    estoque: number | null;
+    minimo: number;
+    totalSaida: number;
+    excluida: boolean;
+  }) {
+    if (item.excluida || item.estoque == null) {
+      return { texto: `Repor ~${item.totalSaida} un.`, classe: "text-stock-low" };
+    }
+    if (item.estoque <= item.minimo) {
+      const sugerido = Math.max(item.minimo * 2 - item.estoque, item.totalSaida);
+      return { texto: `Repor ~${sugerido} un.`, classe: "text-stock-low" };
+    }
+    if (item.estoque <= item.minimo * 1.5) {
+      return { texto: "Atenção", classe: "text-stock-warn" };
+    }
+    return { texto: "Estoque ok", classe: "text-stock-ok" };
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -453,10 +539,11 @@ function Painel() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-5">
           <Resumo icone={BookOpen} rotulo="Apostilas cadastradas" valor={apostilas.data?.length ?? 0} />
           <Resumo icone={ClipboardList} rotulo="Exemplares em estoque" valor={totalEstoque} />
           <Resumo icone={PackageCheck} rotulo="Entregas registradas" valor={entregas.data?.length ?? 0} />
+          <Resumo icone={BarChart3} rotulo="Exemplares entregues" valor={totalEntregue} />
           <Resumo icone={AlertTriangle} rotulo="Apostilas em alerta" valor={emAlerta} destaque={emAlerta > 0} />
         </div>
 
@@ -466,6 +553,7 @@ function Painel() {
             <TabsTrigger value="apostilas">Apostilas</TabsTrigger>
             <TabsTrigger value="entregas">Entregas</TabsTrigger>
             <TabsTrigger value="historico">Histórico</TabsTrigger>
+            <TabsTrigger value="reposicao">Reposição</TabsTrigger>
           </TabsList>
 
           {/* APOSTILAS */}
@@ -660,6 +748,77 @@ function Painel() {
                       <TableRow>
                         <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
                           Nenhum registro ainda.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* REPOSICAO */}
+          <TabsContent value="reposicao" className="pt-6">
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-display text-lg">
+                  <BarChart3 className="size-4 text-accent" />
+                  Ranking de saídas para reposição
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-14 text-center">#</TableHead>
+                      <TableHead>Apostila</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead className="text-right">Total saída</TableHead>
+                      <TableHead className="text-right">Estoque</TableHead>
+                      <TableHead className="text-right">Mínimo</TableHead>
+                      <TableHead>Situação / Sugestão</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rankingReposicao.map((item, index) => {
+                      const sugestao = sugestaoReposicao(item);
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-center font-display text-lg font-bold text-muted-foreground">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {item.nome}
+                            {item.excluida && (
+                              <span className="ml-2 text-xs text-muted-foreground">(removida)</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {nomeCategoria(item.categoria_id) ? (
+                              <Badge variant="secondary">{nomeCategoria(item.categoria_id)}</Badge>
+                            ) : item.excluida ? (
+                              <span className="text-xs text-muted-foreground">Removida</span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">{item.totalSaida}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {item.estoque ?? "—"}
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {item.excluida ? "—" : item.minimo}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`text-sm font-medium ${sugestao.classe}`}>{sugestao.texto}</span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {rankingReposicao.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                          Nenhuma entrega registrada ainda. O ranking aparecerá assim que houver saídas.
                         </TableCell>
                       </TableRow>
                     )}
