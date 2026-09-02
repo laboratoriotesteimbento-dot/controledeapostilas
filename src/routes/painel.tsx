@@ -444,30 +444,79 @@ function Painel() {
   );
 
   const rankingReposicao = useMemo(() => {
-    const map = new Map<string, number>();
+    const porId = new Map<string, number>();
+    const porNome = new Map<string, number>();
     for (const e of entregas.data ?? []) {
-      if (!e.apostila_id) continue;
-      map.set(e.apostila_id, (map.get(e.apostila_id) ?? 0) + e.quantidade);
+      if (e.apostila_id) {
+        porId.set(e.apostila_id, (porId.get(e.apostila_id) ?? 0) + e.quantidade);
+      } else {
+        porNome.set(e.apostila_nome, (porNome.get(e.apostila_nome) ?? 0) + e.quantidade);
+      }
     }
-    const items = (apostilas.data ?? [])
-      .filter((a) => map.has(a.id))
-      .map((a) => ({
-        id: a.id,
-        nome: a.nome,
-        categoria_id: a.categoria_id,
-        totalSaida: map.get(a.id) ?? 0,
-        estoque: a.quantidade,
-        minimo: a.estoque_minimo,
-      }))
-      .sort((a, b) => b.totalSaida - a.totalSaida);
-    return items;
+
+    const items: {
+      id: string;
+      nome: string;
+      categoria_id: string | null;
+      totalSaida: number;
+      estoque: number | null;
+      minimo: number;
+      excluida: boolean;
+    }[] = [];
+
+    for (const a of apostilas.data ?? []) {
+      const total = porId.get(a.id) ?? 0;
+      if (total > 0) {
+        items.push({
+          id: a.id,
+          nome: a.nome,
+          categoria_id: a.categoria_id,
+          totalSaida: total,
+          estoque: a.quantidade,
+          minimo: a.estoque_minimo,
+          excluida: false,
+        });
+        porId.delete(a.id);
+      }
+    }
+
+    for (const [id, total] of porId.entries()) {
+      const entrega = entregas.data?.find((e) => e.apostila_id === id);
+      items.push({
+        id,
+        nome: entrega?.apostila_nome ?? "Apostila removida",
+        categoria_id: null,
+        totalSaida: total,
+        estoque: null,
+        minimo: 0,
+        excluida: true,
+      });
+    }
+
+    for (const [nome, total] of porNome.entries()) {
+      items.push({
+        id: nome,
+        nome,
+        categoria_id: null,
+        totalSaida: total,
+        estoque: null,
+        minimo: 0,
+        excluida: true,
+      });
+    }
+
+    return items.sort((a, b) => b.totalSaida - a.totalSaida);
   }, [entregas.data, apostilas.data]);
 
   function sugestaoReposicao(item: {
-    estoque: number;
+    estoque: number | null;
     minimo: number;
     totalSaida: number;
+    excluida: boolean;
   }) {
+    if (item.excluida || item.estoque == null) {
+      return { texto: `Repor ~${item.totalSaida} un.`, classe: "text-stock-low" };
+    }
     if (item.estoque <= item.minimo) {
       const sugerido = Math.max(item.minimo * 2 - item.estoque, item.totalSaida);
       return { texto: `Repor ~${sugerido} un.`, classe: "text-stock-low" };
