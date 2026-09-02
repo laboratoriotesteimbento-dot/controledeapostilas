@@ -787,17 +787,28 @@ function Painel() {
                           <TableCell className="text-center font-display text-lg font-bold text-muted-foreground">
                             {index + 1}
                           </TableCell>
-                          <TableCell className="font-medium">{item.nome}</TableCell>
+                          <TableCell className="font-medium">
+                            {item.nome}
+                            {item.excluida && (
+                              <span className="ml-2 text-xs text-muted-foreground">(removida)</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             {nomeCategoria(item.categoria_id) ? (
                               <Badge variant="secondary">{nomeCategoria(item.categoria_id)}</Badge>
+                            ) : item.excluida ? (
+                              <span className="text-xs text-muted-foreground">Removida</span>
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">{item.totalSaida}</TableCell>
-                          <TableCell className="text-right">{item.estoque}</TableCell>
-                          <TableCell className="text-right text-muted-foreground">{item.minimo}</TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {item.estoque ?? "—"}
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground">
+                            {item.excluida ? "—" : item.minimo}
+                          </TableCell>
                           <TableCell>
                             <span className={`text-sm font-medium ${sugestao.classe}`}>{sugestao.texto}</span>
                           </TableCell>
