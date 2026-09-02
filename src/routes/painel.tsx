@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  BarChart3,
   BookOpen,
   ClipboardList,
   History,
