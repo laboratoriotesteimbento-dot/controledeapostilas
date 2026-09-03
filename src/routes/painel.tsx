@@ -554,6 +554,8 @@ function Painel() {
             <TabsTrigger value="entregas">Entregas</TabsTrigger>
             <TabsTrigger value="historico">Histórico</TabsTrigger>
             <TabsTrigger value="reposicao">Reposição</TabsTrigger>
+            <TabsTrigger value="compras">Relatório de Compras</TabsTrigger>
+
           </TabsList>
 
           {/* APOSTILAS */}
