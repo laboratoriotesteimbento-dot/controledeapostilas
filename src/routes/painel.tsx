@@ -17,6 +17,7 @@ import {
 
 
 import { supabase } from "@/integrations/supabase/client";
+import { RelatorioCompras } from "@/components/RelatorioCompras";
 import { formatarData, registrarLog } from "@/lib/registro";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -554,6 +555,8 @@ function Painel() {
             <TabsTrigger value="entregas">Entregas</TabsTrigger>
             <TabsTrigger value="historico">Histórico</TabsTrigger>
             <TabsTrigger value="reposicao">Reposição</TabsTrigger>
+            <TabsTrigger value="compras">Relatório de Compras</TabsTrigger>
+
           </TabsList>
 
           {/* APOSTILAS */}
@@ -827,7 +830,17 @@ function Painel() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* RELATÓRIO DE COMPRAS */}
+          <TabsContent value="compras" className="pt-6">
+            <RelatorioCompras
+              apostilas={apostilas.data ?? []}
+              entregas={entregas.data ?? []}
+              nomeCategoria={nomeCategoria}
+            />
+          </TabsContent>
         </Tabs>
+
       </main>
 
       {/* Dialog apostila */}
