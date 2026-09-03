@@ -829,7 +829,17 @@ function Painel() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* RELATÓRIO DE COMPRAS */}
+          <TabsContent value="compras" className="pt-6">
+            <RelatorioCompras
+              apostilas={apostilas.data ?? []}
+              entregas={entregas.data ?? []}
+              nomeCategoria={nomeCategoria}
+            />
+          </TabsContent>
         </Tabs>
+
       </main>
 
       {/* Dialog apostila */}
