@@ -17,6 +17,7 @@ import {
 
 
 import { supabase } from "@/integrations/supabase/client";
+import { RelatorioCompras } from "@/components/RelatorioCompras";
 import { formatarData, registrarLog } from "@/lib/registro";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
