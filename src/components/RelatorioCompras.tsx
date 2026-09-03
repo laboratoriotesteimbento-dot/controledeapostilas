@@ -165,9 +165,16 @@ export function RelatorioCompras({
     return apostilas
       .map((a) => {
         const agg = porId.get(a.id) ?? porNome.get(a.nome) ?? { qtd: 0, ocorrencias: 0 };
-        const comprar = Math.max(a.estoque_minimo - a.quantidade, 0);
+        // Meta de estoque = o maior entre o mínimo configurado e a demanda do período.
+        // Comprar = meta - estoque atual (nunca negativo).
+        const meta = Math.max(a.estoque_minimo, agg.qtd);
+        const comprar = Math.max(meta - a.quantidade, 0);
         const situacao: Linha["situacao"] =
-          a.quantidade < a.estoque_minimo ? "repor" : a.quantidade === a.estoque_minimo ? "atencao" : "ok";
+          a.quantidade < a.estoque_minimo || a.quantidade < agg.qtd
+            ? "repor"
+            : a.quantidade === a.estoque_minimo
+              ? "atencao"
+              : "ok";
         return {
           id: a.id,
           nome: a.nome,
@@ -241,6 +248,7 @@ export function RelatorioCompras({
   <tbody>${linhasHtml || '<tr><td colspan="7">Nenhuma apostila cadastrada.</td></tr>'}</tbody>
 </table>
 <div class="total">TOTAL DE UNIDADES PARA COMPRA: ${totalComprar}</div>
+<div class="rodape">Cálculo: comprar = maior valor entre estoque mínimo e saídas do período, menos o estoque atual (nunca negativo).</div>
 <div class="rodape">Relatório gerado automaticamente pelo sistema interno de controle de apostilas do Instituto Mix.</div>
 <script>window.onload = function () { window.print(); };</script>
 </body></html>`;
@@ -352,6 +360,12 @@ export function RelatorioCompras({
               TOTAL DE UNIDADES PARA COMPRA: {totalComprar}
             </p>
           )}
+          <p className="mt-3 text-xs text-muted-foreground">
+            Como calculamos: a meta de estoque é o maior valor entre o estoque mínimo e as saídas do
+            período. A coluna "A comprar" mostra quanto falta para atingir essa meta (nunca negativo).
+            Assim, apostilas com alta saída são repostas para cobrir a demanda, e as de baixa saída
+            apenas até o mínimo.
+          </p>
         </CardContent>
       </Card>
     </div>
