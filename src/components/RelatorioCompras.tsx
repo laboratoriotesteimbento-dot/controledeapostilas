@@ -165,9 +165,16 @@ export function RelatorioCompras({
     return apostilas
       .map((a) => {
         const agg = porId.get(a.id) ?? porNome.get(a.nome) ?? { qtd: 0, ocorrencias: 0 };
-        const comprar = Math.max(a.estoque_minimo - a.quantidade, 0);
+        // Meta de estoque = o maior entre o mínimo configurado e a demanda do período.
+        // Comprar = meta - estoque atual (nunca negativo).
+        const meta = Math.max(a.estoque_minimo, agg.qtd);
+        const comprar = Math.max(meta - a.quantidade, 0);
         const situacao: Linha["situacao"] =
-          a.quantidade < a.estoque_minimo ? "repor" : a.quantidade === a.estoque_minimo ? "atencao" : "ok";
+          a.quantidade < a.estoque_minimo || a.quantidade < agg.qtd
+            ? "repor"
+            : a.quantidade === a.estoque_minimo
+              ? "atencao"
+              : "ok";
         return {
           id: a.id,
           nome: a.nome,
