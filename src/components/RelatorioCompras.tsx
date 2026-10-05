@@ -186,7 +186,7 @@ export function RelatorioCompras({
           situacao,
         };
       })
-      .sort((x, y) => y.comprar - x.comprar || y.saidas - x.saidas || x.nome.localeCompare(y.nome));
+      .sort((x, y) => y.saidas - x.saidas || y.comprar - x.comprar || x.nome.localeCompare(y.nome));
   }, [apostilas, entregasPeriodo, nomeCategoria]);
 
   const totalSaidas = linhas.reduce((s, l) => s + l.saidas, 0);
