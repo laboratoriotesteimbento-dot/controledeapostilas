@@ -197,7 +197,9 @@ export function RelatorioCompras({
   const rotuloPeriodo =
     periodo === "custom"
       ? `${dataCurta(inicio)} a ${dataCurta(fim)}`
-      : `${periodos.find((p) => p.id === periodo)?.rotulo} (${dataCurta(inicio)} a ${dataCurta(fim)})`;
+      : periodo === "tudo"
+        ? "Todo o histórico de entregas"
+        : `${periodos.find((p) => p.id === periodo)?.rotulo} (${dataCurta(inicio)} a ${dataCurta(fim)})`;
 
   function gerarDocumento() {
     const linhasHtml = linhas
