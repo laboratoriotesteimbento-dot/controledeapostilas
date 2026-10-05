@@ -186,7 +186,7 @@ export function RelatorioCompras({
           situacao,
         };
       })
-      .sort((x, y) => y.comprar - x.comprar || y.saidas - x.saidas || x.nome.localeCompare(y.nome));
+      .sort((x, y) => y.saidas - x.saidas || y.comprar - x.comprar || x.nome.localeCompare(y.nome));
   }, [apostilas, entregasPeriodo, nomeCategoria]);
 
   const totalSaidas = linhas.reduce((s, l) => s + l.saidas, 0);
@@ -249,7 +249,7 @@ export function RelatorioCompras({
   <tbody>${linhasHtml || '<tr><td colspan="7">Nenhuma apostila cadastrada.</td></tr>'}</tbody>
 </table>
 <div class="total">TOTAL DE UNIDADES PARA COMPRA: ${totalComprar}</div>
-<div class="rodape">Cálculo: comprar = maior valor entre estoque mínimo e saídas do período, menos o estoque atual (nunca negativo).</div>
+<div class="rodape">Cálculo: com base em todo o histórico de entregas, comprar = saídas do período - estoque atual (nunca negativo). Apostilas sem saída não entram no pedido.</div>
 <div class="rodape">Relatório gerado automaticamente pelo sistema interno de controle de apostilas do Instituto Mix.</div>
 <script>window.onload = function () { window.print(); };</script>
 </body></html>`;
@@ -362,10 +362,10 @@ export function RelatorioCompras({
             </p>
           )}
           <p className="mt-3 text-xs text-muted-foreground">
-            Como calculamos: a meta de estoque é o maior valor entre o estoque mínimo e as saídas do
-            período. A coluna "A comprar" mostra quanto falta para atingir essa meta (nunca negativo).
-            Assim, apostilas com alta saída são repostas para cobrir a demanda, e as de baixa saída
-            apenas até o mínimo.
+            Como calculamos: a lista usa <strong>todo o histórico de entregas</strong> e vem
+            ordenada do que mais saiu para o que menos saiu. A coluna "A comprar" mostra quanto
+            falta de estoque para cobrir as saídas (nunca negativo), e apostilas sem nenhuma saída
+            não entram no pedido — assim você compra apenas o que está saindo.
           </p>
         </CardContent>
       </Card>
