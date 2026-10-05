@@ -38,9 +38,10 @@ export type EntregaRel = {
   data_entrega: string;
 };
 
-type PeriodoId = "hoje" | "7" | "30" | "mes" | "mes_anterior" | "custom";
+type PeriodoId = "tudo" | "hoje" | "7" | "30" | "mes" | "mes_anterior" | "custom";
 
 const periodos: { id: PeriodoId; rotulo: string }[] = [
+  { id: "tudo", rotulo: "Todo o histórico" },
   { id: "hoje", rotulo: "Hoje" },
   { id: "7", rotulo: "Últimos 7 dias" },
   { id: "30", rotulo: "Últimos 30 dias" },
@@ -64,6 +65,8 @@ function fimDoDia(d: Date) {
 function intervaloDe(periodo: PeriodoId, de: string, ate: string): { inicio: Date; fim: Date } {
   const hoje = new Date();
   switch (periodo) {
+    case "tudo":
+      return { inicio: new Date(0), fim: fimDoDia(hoje) };
     case "hoje":
       return { inicio: inicioDoDia(hoje), fim: fimDoDia(hoje) };
     case "7": {
@@ -137,7 +140,7 @@ export function RelatorioCompras({
   entregas: EntregaRel[];
   nomeCategoria: (id: string | null) => string | null;
 }) {
-  const [periodo, setPeriodo] = useState<PeriodoId>("30");
+  const [periodo, setPeriodo] = useState<PeriodoId>("tudo");
   const [de, setDe] = useState("");
   const [ate, setAte] = useState("");
 
@@ -194,7 +197,9 @@ export function RelatorioCompras({
   const rotuloPeriodo =
     periodo === "custom"
       ? `${dataCurta(inicio)} a ${dataCurta(fim)}`
-      : `${periodos.find((p) => p.id === periodo)?.rotulo} (${dataCurta(inicio)} a ${dataCurta(fim)})`;
+      : periodo === "tudo"
+        ? "Todo o histórico de entregas"
+        : `${periodos.find((p) => p.id === periodo)?.rotulo} (${dataCurta(inicio)} a ${dataCurta(fim)})`;
 
   function gerarDocumento() {
     const linhasHtml = linhas
