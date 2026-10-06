@@ -131,6 +131,9 @@ const classeSituacao: Record<Linha["situacao"], string> = {
   ok: "bg-stock-ok/15 text-stock-ok border-stock-ok/30",
 };
 
+const notaCalculo =
+  'Cálculo: com base nas entregas do período selecionado, a coluna "A comprar" repõe exatamente a quantidade que saiu. Apostilas sem saída não entram no pedido — assim você compra apenas o que está saindo.';
+
 export function RelatorioCompras({
   apostilas,
   entregas,
@@ -169,11 +172,9 @@ export function RelatorioCompras({
       .map((a) => {
         const agg = porId.get(a.id) ?? porNome.get(a.nome) ?? { qtd: 0, ocorrencias: 0 };
         // Compra baseada apenas na demanda real do período:
-        // comprar = saídas do período - estoque atual (nunca negativo).
-        // Apostilas sem saída não entram no pedido.
-        const comprar = agg.qtd > 0 ? Math.max(agg.qtd - a.quantidade, 0) : 0;
-        const situacao: Linha["situacao"] =
-          comprar > 0 ? "repor" : agg.qtd > 0 ? "atencao" : "ok";
+        // repor exatamente o que saiu. Apostilas sem saída não entram no pedido.
+        const comprar = agg.qtd;
+        const situacao: Linha["situacao"] = agg.qtd > 0 ? "repor" : "ok";
         return {
           id: a.id,
           nome: a.nome,
@@ -249,7 +250,7 @@ export function RelatorioCompras({
   <tbody>${linhasHtml || '<tr><td colspan="7">Nenhuma apostila cadastrada.</td></tr>'}</tbody>
 </table>
 <div class="total">TOTAL DE UNIDADES PARA COMPRA: ${totalComprar}</div>
-<div class="rodape">Cálculo: com base em todo o histórico de entregas, comprar = saídas do período - estoque atual (nunca negativo). Apostilas sem saída não entram no pedido.</div>
+<div class="rodape">${escapar(notaCalculo)}</div>
 <div class="rodape">Relatório gerado automaticamente pelo sistema interno de controle de apostilas do Instituto Mix.</div>
 <script>window.onload = function () { window.print(); };</script>
 </body></html>`;
@@ -361,12 +362,7 @@ export function RelatorioCompras({
               TOTAL DE UNIDADES PARA COMPRA: {totalComprar}
             </p>
           )}
-          <p className="mt-3 text-xs text-muted-foreground">
-            Como calculamos: a lista usa <strong>todo o histórico de entregas</strong> e vem
-            ordenada do que mais saiu para o que menos saiu. A coluna "A comprar" mostra quanto
-            falta de estoque para cobrir as saídas (nunca negativo), e apostilas sem nenhuma saída
-            não entram no pedido — assim você compra apenas o que está saindo.
-          </p>
+          <p className="mt-3 text-xs text-muted-foreground">{notaCalculo}</p>
         </CardContent>
       </Card>
     </div>
