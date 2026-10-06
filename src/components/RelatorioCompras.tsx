@@ -169,11 +169,9 @@ export function RelatorioCompras({
       .map((a) => {
         const agg = porId.get(a.id) ?? porNome.get(a.nome) ?? { qtd: 0, ocorrencias: 0 };
         // Compra baseada apenas na demanda real do período:
-        // comprar = saídas do período - estoque atual (nunca negativo).
-        // Apostilas sem saída não entram no pedido.
-        const comprar = agg.qtd > 0 ? Math.max(agg.qtd - a.quantidade, 0) : 0;
-        const situacao: Linha["situacao"] =
-          comprar > 0 ? "repor" : agg.qtd > 0 ? "atencao" : "ok";
+        // repor exatamente o que saiu. Apostilas sem saída não entram no pedido.
+        const comprar = agg.qtd;
+        const situacao: Linha["situacao"] = agg.qtd > 0 ? "repor" : "ok";
         return {
           id: a.id,
           nome: a.nome,
